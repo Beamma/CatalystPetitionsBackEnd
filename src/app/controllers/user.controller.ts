@@ -100,6 +100,16 @@ const logout = async (req: Request, res: Response): Promise<void> => {
     }
 }
 
+const validateSession = async (id: string, req: Request): Promise<boolean> => {
+    const user = await users.getId(id);
+    const token = user[0].auth_token;
+    const webToken = req.headers['x-authorization'];
+    Logger.info(`${token}`);
+    Logger.info(`${webToken}`);
+    return token === webToken;
+
+}
+
 const view = async (req: Request, res: Response): Promise<void> => {
 
     try{
@@ -107,23 +117,23 @@ const view = async (req: Request, res: Response): Promise<void> => {
         Logger.info(`id: ${id}`);
         const user = await users.getId(id);
         Logger.info(`user[0]: ${user[0]}`);
+
         if (user.length === 0) {
             res.status(404).send(`User does not exist`);
             return;
         }
-        const token = user[0].auth_token;
+
+
         const email = user[0].email;
         const firstName = user[0].first_name;
         const lastName = user[0].last_name;
-        const authToken = req.headers['x-authorization'];
-        Logger.info(`Auth Token ${authToken}`);
-        if (token !== authToken) {
-            Logger.info(`${firstName}`);
-            res.status(200).send({"firstName": firstName, "lastName": lastName});
+
+        if (await validateSession(id, req)) {
+            res.status(200).send({"email": email, "firstName": firstName, "lastName": lastName});
             return;
         } else {
-            Logger.info("B");
-            res.status(200).send({"email": email, "firstName": firstName, "lastName": lastName});
+            res.status(200).send({"firstName": firstName, "lastName": lastName});
+            return;
         }
 
     } catch (err) {

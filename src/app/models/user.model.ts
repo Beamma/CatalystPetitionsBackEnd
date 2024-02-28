@@ -39,6 +39,23 @@ const getByEmail = async (email: string): Promise<User[]> => {
     return result;
 }
 
+const insertToken = async (email: string, token: string): Promise<any> => {
+    Logger.info(`Updating user ${email} token in the database`);
+    const conn = await getPool().getConnection();
+    const query = 'UPDATE user SET auth_token = (?) WHERE email = (?)';
+    const [result] = await conn.query(query,[token, email]);
+    await conn.release();
+    return result;
+}
+
+const getId = async (id: string): Promise<User[]> => {
+    Logger.info(`Getting user ${id} from the database`);
+    const conn = await getPool().getConnection();
+    const query = 'SELECT * FROM user WHERE id = (?)';
+    const [result] = await conn.query(query,[id]);
+    await conn.release();
+    return result;
+}
 
 // const alter = async (id: number, username: string): Promise<any> => {
 //     Logger.info(`Updating user ${id} to the database`);
@@ -58,4 +75,4 @@ const getByEmail = async (email: string): Promise<User[]> => {
 //     return result;
 // }
 
-export {insert, getByEmail}
+export {insert, getByEmail, insertToken, getId}

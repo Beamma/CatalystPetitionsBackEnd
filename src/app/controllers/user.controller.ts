@@ -27,6 +27,7 @@ const register = async (req: Request, res: Response): Promise<void> => {
     const emailResult = await users.getByEmail(req.body.email);
     Logger.info(`${emailResult.length}`);
     if (emailResult.length !== 0) {
+        Logger.info(`Email in use`);
         res.status(403).send(`Email already in use`);
         return;
     }
@@ -44,10 +45,39 @@ const register = async (req: Request, res: Response): Promise<void> => {
 
 const login = async (req: Request, res: Response): Promise<void> => {
     try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
-        return;
+        Logger.http(`POST login a user with email: ${req.body.email}`)
+        const validation = await validate(
+            schemas.user_login, req.body
+        );
+        if (validation !== true) {
+            res.statusMessage = `Bad Request: ${validation.toString()}`; // ChecK?
+            res.status(400).send('Failed');
+            return;
+        }
+
+        const emailResult = await users.getByEmail(req.body.email);
+        if (emailResult.length === 0) {
+            res.status(401).send(`Incorrect email`);
+            return;
+        }
+
+        if (emailResult[0].password !== req.body.password) {
+            res.status(401).send(`Incorrect password`);
+            return;
+        }
+
+        const token = Math.random().toString(36);
+        try{
+            const result = await users.insertToken(req.body.email, token);
+            res.status(200).send({"userId": emailResult[0].id, "token": token});
+            return;
+        } catch (err) {
+            Logger.error(err);
+            res.status(500).send(`ERROR logging in user ${req.body.email}: ${ err }`);
+            return;
+        }
+
+
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";
@@ -71,11 +101,31 @@ const logout = async (req: Request, res: Response): Promise<void> => {
 }
 
 const view = async (req: Request, res: Response): Promise<void> => {
+
     try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
-        return;
+        const id = req.params.id;
+        Logger.info(`id: ${id}`);
+        const user = await users.getId(id);
+        Logger.info(`user[0]: ${user[0]}`);
+        if (user.length === 0) {
+            res.status(404).send(`User does not exist`);
+            return;
+        }
+        const token = user[0].auth_token;
+        const email = user[0].email;
+        const firstName = user[0].first_name;
+        const lastName = user[0].last_name;
+        const authToken = req.headers['x-authorization'];
+        Logger.info(`Auth Token ${authToken}`);
+        if (token !== authToken) {
+            Logger.info(`${firstName}`);
+            res.status(200).send({"firstName": firstName, "lastName": lastName});
+            return;
+        } else {
+            Logger.info("B");
+            res.status(200).send({"email": email, "firstName": firstName, "lastName": lastName});
+        }
+
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";

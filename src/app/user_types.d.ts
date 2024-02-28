@@ -2,14 +2,16 @@ type User = {
     /**
     * User id as defined by the database
     */
-    user_id: number,
+    id: number,
     /**
     *Users username as entered when created
     */
 
     email: string,
-    firstName: string,
-    lastName: string,
-    password: string
+    first_name: string,
+    last_name: string,
+    password: string,
+    image_filename: string,
+    auth_token: string
 
 }

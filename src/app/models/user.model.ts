@@ -57,14 +57,23 @@ const getId = async (id: string): Promise<User[]> => {
     return result;
 }
 
-// const alter = async (id: number, username: string): Promise<any> => {
-//     Logger.info(`Updating user ${id} to the database`);
+// const getByToken = async (token: string): Promise<User[]> => {
+//     Logger.info(`Getting user by token ${token} from the database`);
 //     const conn = await getPool().getConnection();
-//     const query = 'UPDATE lab2_users SET username = (?) WHERE user_id = (?)';
-//     const [result] = await conn.query(query,[username, id]);
+//     const query = 'select * from lab2_users where  auth_token = ?';
+//     const [ rows ] = await conn.query( query, [ token ] );
 //     await conn.release();
-//     return result;
+//     return rows;
 // }
+
+const alterUser = async (id: string, email: string, firstName: string, lastName: string, password: string): Promise<any> => {
+    Logger.info(`Updating user ${id} to the database`);
+    const conn = await getPool().getConnection();
+    const query = 'UPDATE user SET email = (?), first_name = (?), last_name = (?), password = (?) WHERE id = (?)';
+    const [result] = await conn.query(query,[email, firstName, lastName, password, id]);
+    await conn.release();
+    return result;
+}
 
 // const remove = async (id: number): Promise<any> => {
 //     Logger.info(`Deleting user ${id} from the database`);
@@ -75,4 +84,4 @@ const getId = async (id: string): Promise<User[]> => {
 //     return result;
 // }
 
-export {insert, getByEmail, insertToken, getId}
+export {insert, getByEmail, insertToken, getId, alterUser}

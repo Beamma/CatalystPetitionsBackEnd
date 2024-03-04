@@ -146,10 +146,85 @@ const view = async (req: Request, res: Response): Promise<void> => {
 
 const update = async (req: Request, res: Response): Promise<void> => {
     try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+        const validation = await validate(
+            schemas.user_edit, req.body
+        );
+        if (validation !== true) {
+            res.statusMessage = `Bad Request: ${validation.toString()}`; // ChecK?
+            res.status(400).send('Failed');
+            return;
+        }
+        if (req.body.email) {
+            const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+
+            if (!req.body.email.match(emailRegex)) {
+                res.status(400).send(`Invalid email format`);
+                return;
+            }
+        }
+
+        // Get user info for header token
+        const id = req.params.id;
+
+        const user = await users.getId(id);
+        if (user.length === 0) {
+            res.status(404).send(`User does not exist`);
+            return;
+        }
+
+        if (! await validateSession(id, req)) {
+            res.status(401).send(`You cannot edit another users information`);
+            return;
+        }
+
+        // check current password == dbPassword
+        const currentPassword = req.body.currentPassword
+        Logger.info(currentPassword);
+        Logger.info(user[0].password)
+        if (currentPassword !== user[0].password) {
+            res.status(401).send(`User does not exist`);
+            return;
+        }
+
+        // currentpassword != password
+        if ( req.body.password === req.body.currentPassword) {
+            res.status(403).send(`Password cannot be the same as currentPassword`);
+            return;
+        }
+
+
+        let email = "";
+        if (req.body.email) {
+            email = req.body.email;
+        } else {
+            email = user[0].email;
+        }
+
+        let firstName = "";
+        if (req.body.firstName) {
+            firstName = req.body.firstName;
+        } else {
+            firstName = user[0].first_name;
+        }
+
+        let lastName = "";
+        if (req.body.lastName) {
+            lastName = req.body.lastNameName;
+        } else {
+            lastName = user[0].last_name;
+        }
+
+        let pword = "";
+        if (req.body.password) {
+            pword = req.body.password;
+        } else {
+            pword = user[0].password;
+        }
+
+        const result = await users.alterUser(id, email, firstName, lastName, pword);
+        res.status(200).send();
         return;
+
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";

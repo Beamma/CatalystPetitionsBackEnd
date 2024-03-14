@@ -75,6 +75,24 @@ const alterUser = async (id: string, email: string, firstName: string, lastName:
     return result;
 }
 
+const removeToken = async (token: string) => {
+    Logger.info(`Updating user ${token} token in the database`);
+    const conn = await getPool().getConnection();
+    const query = 'UPDATE user SET auth_token = (?) WHERE auth_token = (?)';
+    const [result] = await conn.query(query,[null, token]);
+    await conn.release();
+    return result;
+}
+
+const getByToken = async (token: string) => {
+    Logger.info(`Getting user ${token} from the database`);
+    Logger.info(token);
+    const conn = await getPool().getConnection();
+    const query = 'SELECT * FROM user WHERE auth_token = (?)';
+    const [result] = await conn.query(query,[token]);
+    await conn.release();
+    return result;
+}
 // const remove = async (id: number): Promise<any> => {
 //     Logger.info(`Deleting user ${id} from the database`);
 //     const conn = await getPool().getConnection();
@@ -84,4 +102,4 @@ const alterUser = async (id: string, email: string, firstName: string, lastName:
 //     return result;
 // }
 
-export {insert, getByEmail, insertToken, getId, alterUser}
+export {insert, getByEmail, insertToken, getId, alterUser, removeToken, getByToken}

@@ -88,10 +88,21 @@ const login = async (req: Request, res: Response): Promise<void> => {
 
 const logout = async (req: Request, res: Response): Promise<void> => {
     try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+        Logger.http(`POST Logout user`)
+        const webToken = req.headers['x-authorization'];
+        Logger.http(webToken);
+        const user = await users.getByToken(webToken.toString());
+        Logger.http(user.length);
+
+        if (user.length === 0) {
+            res.status(401).send(`Unauthorized. Cannot log out if you are not authenticated`);
+            return;
+        }
+
+        const result = await users.removeToken(webToken.toString());
+        res.status(200).send();
         return;
+
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";

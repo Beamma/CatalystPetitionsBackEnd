@@ -3,24 +3,6 @@ import { getPool } from '../../config/db';
 import Logger from '../../config/logger';
 import { ResultSetHeader } from 'mysql2';
 
-// const getAll = async (): Promise<User[]> => {
-//     Logger.info(`Getting all users from the database`);
-//     const conn = await getPool().getConnection();
-//     const query = 'select * from lab2_users';
-//     const [ rows ] = await conn.query( query );
-//     await conn.release();
-//     return rows;
-// }
-
-// const getOne = async (id: number): Promise<User[]> => {
-//     Logger.info(`Getting user ${id} from the database`);
-//     const conn = await getPool().getConnection();
-//     const query = 'select * from lab2_users where user_id = ?';
-//     const [ rows ] = await conn.query( query, [ id ] );
-//     await conn.release();
-//     return rows;
-// }
-
 
 const insert = async (email: string, firstName: string, lastName: string, password: string): Promise<ResultSetHeader> => {
     Logger.info(`Adding user ${email} to the database`);
@@ -86,15 +68,6 @@ const removeImage = async (imageDir: string, id: string) => {
     return result;
 }
 
-// const getByToken = async (token: string): Promise<User[]> => {
-//     Logger.info(`Getting user by token ${token} from the database`);
-//     const conn = await getPool().getConnection();
-//     const query = 'select * from lab2_users where  auth_token = ?';
-//     const [ rows ] = await conn.query( query, [ token ] );
-//     await conn.release();
-//     return rows;
-// }
-
 const alterUser = async (id: string, email: string, firstName: string, lastName: string, password: string): Promise<any> => {
     Logger.info(`Updating user ${id} to the database`);
     const conn = await getPool().getConnection();
@@ -122,13 +95,6 @@ const getByToken = async (token: string) => {
     await conn.release();
     return result;
 }
-// const remove = async (id: number): Promise<any> => {
-//     Logger.info(`Deleting user ${id} from the database`);
-//     const conn = await getPool().getConnection();
-//     const query = 'DELETE FROM lab2_users WHERE user_id = (?)';
-//     const [result] = await conn.query(query,[id]);
-//     await conn.release();
-//     return result;
-// }
+
 
 export {insert, getByEmail, insertToken, getId, alterUser, removeToken, getByToken, getImage, uploadImage, removeImage}

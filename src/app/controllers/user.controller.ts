@@ -244,4 +244,4 @@ const update = async (req: Request, res: Response): Promise<void> => {
     }
 }
 
-export {register, login, logout, view, update}
+export {register, login, logout, view, update, validateSession}

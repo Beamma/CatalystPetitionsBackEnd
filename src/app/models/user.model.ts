@@ -1,3 +1,4 @@
+import { readFile, writeFile } from 'mz/fs';
 import { getPool } from '../../config/db';
 import Logger from '../../config/logger';
 import { ResultSetHeader } from 'mysql2';
@@ -57,6 +58,23 @@ const getId = async (id: string): Promise<User[]> => {
     return result;
 }
 
+const getImage = async (imagePath: string): Promise<Buffer> => {
+    const image = readFile(imagePath);
+    return image;
+}
+
+const uploadImage  = async (imageDir: string, image: Buffer, imageName: string, id: string) => {
+    Logger.info(`Uploading photo for user ${id}`);
+    writeFile(imageDir, image);
+
+    const conn = await getPool().getConnection();
+    const query = 'UPDATE user SET image_filename = (?) WHERE id = (?)';
+    const [result] = await conn.query(query,[imageName, id]);
+    await conn.release();
+    return result;
+
+}
+
 // const getByToken = async (token: string): Promise<User[]> => {
 //     Logger.info(`Getting user by token ${token} from the database`);
 //     const conn = await getPool().getConnection();
@@ -102,4 +120,4 @@ const getByToken = async (token: string) => {
 //     return result;
 // }
 
-export {insert, getByEmail, insertToken, getId, alterUser, removeToken, getByToken}
+export {insert, getByEmail, insertToken, getId, alterUser, removeToken, getByToken, getImage, uploadImage}

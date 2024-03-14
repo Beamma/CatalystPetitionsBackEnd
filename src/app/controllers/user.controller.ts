@@ -117,6 +117,9 @@ const validateSession = async (id: string, req: Request): Promise<boolean> => {
     const webToken = req.headers['x-authorization'];
     Logger.info(`${token}`);
     Logger.info(`${webToken}`);
+    if (webToken === null || token === null) {
+        return false;
+    }
     return token === webToken;
 
 }

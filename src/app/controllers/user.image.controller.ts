@@ -51,7 +51,7 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const validSession = validateSession(id, req);
+        const validSession = await validateSession(id, req);
         if (!validSession) {
             res.status(403).send();
             return;
@@ -102,9 +102,38 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
 const deleteImage = async (req: Request, res: Response): Promise<void> => {
     try{
         // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
-        return;
+        const id = req.params.id;
+        Logger.info(`id: ${id}`);
+        const user = await users.getId(id);
+
+        if (user.length === 0) {
+            res.status(404).send(`User does not exist`);
+            return;
+        }
+
+        const validSession = await validateSession(id, req);
+        if (!validSession) {
+            res.status(403).send();
+            return;
+        }
+
+        const imageName = user[0].image_filename;
+        const fileDir = "./storage/images/" + imageName;
+
+        if (imageName === null) {
+            res.status(400).send('User does not have an image');
+            return;
+        }
+
+        try{
+            const result = users.removeImage(fileDir, id);
+            res.status(200).send();
+            return;
+        } catch (err) {
+            Logger.error(err);
+            res.status(500).send(`ERROR deleting photo in user ${id}: ${ err }`);
+            return;
+        }
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";

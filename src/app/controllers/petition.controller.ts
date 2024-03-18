@@ -7,8 +7,19 @@ const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
         Logger.info("Get all petitions");
 
         try{
-            const result = await petitions.getAllPetitions(req);
-            res.status(200).send(result);
+            let result = await petitions.getAllPetitions(req);
+            const startIndex = req.query.startIndex;
+            const count = req.query.count;
+            const resultLength = result.length;
+            if (startIndex !== undefined) {
+                result = result.slice(Number(startIndex));
+            }
+
+            if (count !== undefined) {
+                result = result.slice(0, Number(count));
+            }
+
+            res.status(200).send({"petitions": result, "count": resultLength});
             return;
         } catch (err) {
             Logger.error(err);

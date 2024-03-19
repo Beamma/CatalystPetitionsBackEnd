@@ -5,6 +5,11 @@ import * as petitions from '../models/petition.model';
 const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
     try{
         Logger.info("Get all petitions");
+        if (!validateGetAllPetitions(req, res)) {
+            return;
+        }
+
+        Logger.info('After');
 
         try{
             let result = await petitions.getAllPetitions(req);
@@ -104,6 +109,54 @@ const getCategories = async(req: Request, res: Response): Promise<void> => {
         res.status(500).send();
         return;
     }
+}
+
+const validateGetAllPetitions = async (req: Request, res: Response): Promise<boolean> => {
+    const sortBy = req.query.sortBy;
+    const q = req.query.q;
+    const categoryIds = req.query.categoryIds;
+    const supportingCost = req.query.supportingCost;
+    const ownerId = req.query.ownerId;
+    const supporterId = req.query.supporterId;
+    const startIndex = req.query.startIndex;
+    const count = req.query.count;
+
+    if (q !== undefined) {
+        if (q === "") {
+            res.status(400).send("Invalid Query");
+            return false;
+        }
+    }
+
+    if (startIndex !== undefined) {
+        const startIndexRegex = /^[0-9]+$/;
+        if (!(startIndex.toString().match(startIndexRegex))) {
+            res.status(400).send("Invalid Start Index");
+            return false;
+        }
+    }
+
+    if (count !== undefined) {
+        const countReg = /^[0-9]+$/;
+        if (!(count.toString().match(countReg))) {
+            res.status(400).send("Invalid Count");
+            return false;
+        }
+    }
+
+    if (categoryIds !== undefined) {
+        const catReg = /^[0-9+,]+$/;
+        if (!(categoryIds.toString().match(catReg))) {
+            res.status(400).send("Invalid Category Id");
+            return false;
+        }
+    }
+
+
+
+
+
+    return true;
 }
 
 export {getAllPetitions, getPetition, addPetition, editPetition, deletePetition, getCategories};

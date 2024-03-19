@@ -62,18 +62,18 @@ const getAllPetitions = async (req: Request) => {
     let order = "ORDER BY creationDate ASC";
     if (sortBy !== undefined) {
         if (sortBy === "ALPHABETICAL_ASC") {
-            
+            order = "ORDER BY petition.title ASC, petitionId ASC";
         } else if (sortBy === "ALPHABETICAL_DESC") {
-
+            order = "ORDER BY petition.title DESC, petitionId ASC";
         } else if (sortBy === "COST_ASC") {
-
+            order = "ORDER BY supportingCost ASC, petitionId ASC";
         } else if (sortBy === "COST_DESC") {
-
+            order = "ORDER BY supportingCost DESC, petitionId ASC";
         } else if (sortBy === "CREATED_ASC") {
-
+            order = "ORDER BY creationDate ASC, petitionId ASC";
         } else if (sortBy === "CREATED_DESC") {
-
-        } 
+            order = "ORDER BY creationDate DESC, petitionId ASC";
+        }
     }
 
     const supporterString = supporterId !== undefined ? `WHERE supporter.user_id = ${supporterId}` : ""

@@ -1,6 +1,7 @@
 import {Request, Response} from "express";
 import Logger from '../../config/logger';
 import * as petitions from '../models/petition.model';
+import * as categories from '../models/category.model';
 
 const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
     try{
@@ -43,7 +44,14 @@ const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
 
 const getPetition = async (req: Request, res: Response): Promise<void> => {
     try{
-        // Your code goes here
+        const id = req.params.id;
+        const petition = await petitions.getById(id);
+
+        if (petition.length === 0) {
+            res.status(404).send(`petition does not exist`);
+            return;
+        }
+
         res.statusMessage = "Not Implemented Yet!";
         res.status(501).send();
         return;
@@ -99,9 +107,14 @@ const deletePetition = async (req: Request, res: Response): Promise<void> => {
 
 const getCategories = async(req: Request, res: Response): Promise<void> => {
     try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+        const category = await categories.getAll();
+
+        if (category.length === 0) {
+            res.status(404).send(`category does not exist`);
+            return;
+        }
+
+        res.status(200).send(category);
         return;
     } catch (err) {
         Logger.error(err);

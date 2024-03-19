@@ -108,4 +108,13 @@ const getAllPetitions = async (req: Request) => {
     return result;
 }
 
-export {getAllPetitions}
+const getById = async (id: string): Promise<User[]> => {
+    Logger.info(`Getting petition ${id} from the database`);
+    const conn = await getPool().getConnection();
+    const query = 'SELECT * FROM petition WHERE id = (?)';
+    const [result] = await conn.query(query,[id]);
+    await conn.release();
+    return result;
+}
+
+export {getAllPetitions, getById}

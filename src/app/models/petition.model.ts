@@ -24,13 +24,57 @@ const getAllPetitions = async (req: Request) => {
     if (q !== undefined) {
         if (where === false) {
             where = true;
-            whereString += "WHERE lower(petition.title) LIKE '%" + q +"%' OR lower(petition.description) LIKE '%" + q +"%'";
+            whereString += "WHERE (lower(petition.title) LIKE '%" + q +"%' OR lower(petition.description) LIKE '%" + q +"%')";
         } else {
-            whereString += " AND lower(petition.title) LIKE '%" + q + "%' OR lower(petition.description) LIKE '%" + q +"%'";
+            whereString += " AND (lower(petition.title) LIKE '%" + q + "%' OR lower(petition.description) LIKE '%" + q +"%')";
         }
     }
 
-    const order = "ORDER BY creationDate ASC"
+    if (categoryIds !== undefined) {
+        const catIds = categoryIds.toString().split(',');
+        if (where === false) {
+            where = true;
+            whereString += "WHERE (";
+            for (let index = 0; index < catIds.length-1; index++) {
+                whereString += "petition.category_id = " + catIds[index] + " or "
+            }
+
+            whereString += "petition.category_id = " + catIds[catIds.length-1] +")"
+        } else {
+            whereString += "AND (";
+            for (let index = 0; index < catIds.length-1; index++) {
+                whereString += "petition.category_id = " + catIds[index] + " or "
+            }
+
+            whereString += "petition.category_id = " + catIds[catIds.length-1] +")"
+        }
+    }
+
+    if (ownerId !== undefined) {
+        if (where === false) {
+            where = true;
+            whereString += "WHERE (owner_id = " + ownerId + ")";
+        } else {
+            whereString += " AND (owner_id = " + ownerId + ")";
+        }
+    }
+
+    let order = "ORDER BY creationDate ASC";
+    if (sortBy !== undefined) {
+        if (sortBy === "ALPHABETICAL_ASC") {
+            
+        } else if (sortBy === "ALPHABETICAL_DESC") {
+
+        } else if (sortBy === "COST_ASC") {
+
+        } else if (sortBy === "COST_DESC") {
+
+        } else if (sortBy === "CREATED_ASC") {
+
+        } else if (sortBy === "CREATED_DESC") {
+
+        } 
+    }
 
     const supporterString = supporterId !== undefined ? `WHERE supporter.user_id = ${supporterId}` : ""
     const query = `

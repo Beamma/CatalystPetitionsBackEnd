@@ -5,7 +5,7 @@ import * as petitions from '../models/petition.model';
 const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
     try{
         Logger.info("Get all petitions");
-        if (!validateGetAllPetitions(req, res)) {
+        if (! await validateGetAllPetitions(req, res)) {
             return;
         }
 
@@ -145,14 +145,44 @@ const validateGetAllPetitions = async (req: Request, res: Response): Promise<boo
     }
 
     if (categoryIds !== undefined) {
-        const catReg = /^[0-9+,]+$/;
+        const catReg = /^\d+(,\d+)*$$/;
         if (!(categoryIds.toString().match(catReg))) {
             res.status(400).send("Invalid Category Id");
             return false;
         }
     }
 
+    if (supportingCost !== undefined) {
+        const costReg = /^[0-9]+$/;
+        if (!(supportingCost.toString().match(costReg))) {
+            res.status(400).send("Invalid Supporting Cost");
+            return false;
+        }
+    }
 
+    if (ownerId !== undefined) {
+        const ownerIdReg = /^[0-9]+$/;
+        if (!(ownerId.toString().match(ownerIdReg))) {
+            res.status(400).send("Invalid Owner Id");
+            return false;
+        }
+    }
+
+    if (supporterId !== undefined) {
+        const supporterIdReg = /^[0-9]+$/;
+        if (!(supporterId.toString().match(supporterIdReg))) {
+            res.status(400).send("Invalid Supporter Id");
+            return false;
+        }
+    }
+
+    if (sortBy !== undefined) {
+        const vals = ["ALPHABETICAL_ASC", "ALPHABETICAL_DESC", "COST_ASC", "COST_DESC", "CREATED_ASC", "CREATED_DESC"]
+        if (!vals.includes(sortBy.toString())) {
+            res.status(400).send("Invalid Order By");
+            return false;
+        }
+    }
 
 
 

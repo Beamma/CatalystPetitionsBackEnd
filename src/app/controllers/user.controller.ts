@@ -3,6 +3,7 @@ import Logger from '../../config/logger';
 import * as schemas from '../resources/schemas.json';
 import {validate} from '../../config/ajv';
 import * as users from '../models/user.model';
+import * as passwords from '../services/passwords';
 
 
 
@@ -32,8 +33,10 @@ const register = async (req: Request, res: Response): Promise<void> => {
         return;
     }
 
+    const password = await passwords.hash(req.body.password);
+
     try{
-        const result = await users.insert(req.body.email, req.body.firstName, req.body.lastName, req.body.password);
+        const result = await users.insert(req.body.email, req.body.firstName, req.body.lastName, password);
         res.status(201).send({"userId": result.insertId});
         return;
     } catch (err) {
@@ -61,7 +64,8 @@ const login = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        if (emailResult[0].password !== req.body.password) {
+        const password = emailResult[0].password;
+        if (! await passwords.compare(req.body.password, password)) {
             res.status(401).send(`Incorrect password`);
             return;
         }
@@ -198,9 +202,8 @@ const update = async (req: Request, res: Response): Promise<void> => {
 
         // check current password == dbPassword
         const currentPassword = req.body.currentPassword
-        Logger.info(currentPassword);
-        Logger.info(user[0].password)
-        if (currentPassword !== user[0].password) {
+        const hash = user[0].password
+        if (! await passwords.compare(currentPassword, hash)) {
             res.status(401).send(`User does not exist`);
             return;
         }
@@ -235,7 +238,7 @@ const update = async (req: Request, res: Response): Promise<void> => {
 
         let pword = "";
         if (req.body.password) {
-            pword = req.body.password;
+            pword = await passwords.hash(req.body.password);
         } else {
             pword = user[0].password;
         }

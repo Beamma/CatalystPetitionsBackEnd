@@ -30,5 +30,23 @@ const getByPetitionId = async (id: string): Promise<Tier[]> => {
     return result;
 }
 
+const getById = async (id: string): Promise<Tier[]> => {
+    Logger.info(`Getting Supporter Tier by Id ${id} from the database`);
+    const conn = await getPool().getConnection();
+    const query = 'SELECT title, description, cost, id as supportTierId FROM support_tier WHERE id = (?) ORDER BY supportTierId ASC';
+    const [result] = await conn.query(query,[id]);
+    await conn.release();
+    return result;
+}
 
-export {insert, getByPetitionId, insertTier}
+const update = async (req: Request, id: string): Promise<ResultSetHeader> => {
+    Logger.info(`Updating petition to the database`);
+    const conn = await getPool().getConnection();
+    const query = 'UPDATE support_tier SET title = (?), description = (?), cost = (?) WHERE id = (?)';
+    const [result] = await conn.query(query,[req.body.title, req.body.description, req.body.cost , id]);
+    await conn.release();
+    return result;
+}
+
+
+export {insert, getByPetitionId, insertTier, getById, update}

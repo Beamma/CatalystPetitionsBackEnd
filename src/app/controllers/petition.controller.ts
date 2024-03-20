@@ -354,4 +354,4 @@ const checkNumSupporters = async (id: string): Promise<boolean> => {
 }
 
 
-export {getAllPetitions, getPetition, addPetition, editPetition, deletePetition, getCategories};
+export {getAllPetitions, getPetition, addPetition, editPetition, deletePetition, getCategories, validateTierTitle};

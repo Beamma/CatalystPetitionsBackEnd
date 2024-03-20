@@ -12,6 +12,15 @@ const insert = async (row: any, id: string): Promise<ResultSetHeader> => {
     return result;
 }
 
+const insertTier = async (req: Request, id: string): Promise<ResultSetHeader> => {
+    Logger.info(`Adding supporter tier to the database`);
+    const conn = await getPool().getConnection();
+    const query = 'insert into support_tier (petition_id, title, description, cost) values (?, ?, ?, ?)';
+    const [result] = await conn.query(query,[id, req.body.title, req.body.description, req.body.cost]);
+    await conn.release();
+    return result;
+}
+
 const getByPetitionId = async (id: string): Promise<Tier[]> => {
     Logger.info(`Getting Supporter Tier by Petition Id ${id} from the database`);
     const conn = await getPool().getConnection();
@@ -22,4 +31,4 @@ const getByPetitionId = async (id: string): Promise<Tier[]> => {
 }
 
 
-export {insert, getByPetitionId}
+export {insert, getByPetitionId, insertTier}

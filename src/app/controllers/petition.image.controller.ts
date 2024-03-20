@@ -66,8 +66,9 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
         const header = req.headers["content-type"];
         const fileType = header.split("/")[1];
 
+        Logger.debug(req.body.length);
 
-        const imageName = "user_" + id + "." + fileType;
+        const imageName = "petition_" + id + "." + fileType;
 
         if (! await validateImage(fileType)) {
             res.status(400).send();

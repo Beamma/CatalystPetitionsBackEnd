@@ -198,7 +198,7 @@ const update = async (req: Request, res: Response): Promise<void> => {
             res.status(403).send(`You cannot edit another users information`);
             return;
         }
-        
+
         if (req.body.password === undefined && req.body.currentPassword !== undefined) {
             res.status(403).send(`Please supply current password`);
             return;

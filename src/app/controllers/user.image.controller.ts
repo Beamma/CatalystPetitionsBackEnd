@@ -65,6 +65,7 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
         const image = req.body;
         const header = req.headers["content-type"];
         const fileType = header.split("/")[1];
+        Logger.debug(req.body.length);
 
 
         const imageName = "user_" + id + "." + fileType;
@@ -90,12 +91,6 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
             res.status(500).send(`ERROR logging in user ${req.body.email}: ${ err }`);
             return;
         }
-
-
-
-
-        res.status(501).send();
-        return;
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";

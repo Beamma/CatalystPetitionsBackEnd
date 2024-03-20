@@ -117,7 +117,7 @@ const validateSession = async (id: string, req: Request): Promise<boolean> => {
     const webToken = req.headers['x-authorization'];
     Logger.info(`${token}`);
     Logger.info(`${webToken}`);
-    if (webToken === null || token === null) {
+    if (webToken === undefined || token === undefined) {
         return false;
     }
     return token === webToken;
@@ -186,8 +186,13 @@ const update = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        const webToken = req.headers['x-authorization'];
+        if (webToken === undefined) {
+            res.status(401).send('Unauthorized');
+            return;
+        }
         if (! await validateSession(id, req)) {
-            res.status(401).send(`You cannot edit another users information`);
+            res.status(403).send(`You cannot edit another users information`);
             return;
         }
 

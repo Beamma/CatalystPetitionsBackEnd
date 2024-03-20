@@ -25,6 +25,11 @@ const addSupportTier = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        const webToken = req.headers['x-authorization'];
+        if (webToken === undefined) {
+            res.status(401).send('Unauthorized');
+            return;
+        }
         if (! await validateSession(petition[0].owner_id.toString(), req)) {
             res.status(403).send('Only the owner of a petition may change it');
             return;
@@ -75,6 +80,11 @@ const editSupportTier = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        const webToken = req.headers['x-authorization'];
+        if (webToken === undefined) {
+            res.status(401).send('Unauthorized');
+            return;
+        }
         if (! await validateSession(petition[0].owner_id.toString(), req)) {
             res.status(403).send('Only the owner of a petition may change it');
             return;
@@ -118,11 +128,6 @@ const editSupportTier = async (req: Request, res: Response): Promise<void> => {
         res.status(200).send();
         return;
 
-
-
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
-        return;
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";
@@ -133,10 +138,49 @@ const editSupportTier = async (req: Request, res: Response): Promise<void> => {
 
 const deleteSupportTier = async (req: Request, res: Response): Promise<void> => {
     try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+        const id = req.params.id;
+        const tierId = req.params.tierId;
+        const petition = await petitions.getById(id);
+
+        if (petition.length === 0) {
+            res.status(404).send(`petition does not exist`);
+            return;
+        }
+
+        const tier = await supportTiers.getById(tierId);
+        const tiers = await supportTiers.getByPetitionId(id);
+
+        if (tier.length === 0) {
+            res.status(404).send(`supportTier does not exist`);
+            return;
+        }
+
+        const webToken = req.headers['x-authorization'];
+        if (webToken === undefined) {
+            res.status(401).send('Unauthorized');
+            return;
+        }
+
+        if (! await validateSession(petition[0].owner_id.toString(), req)) {
+            res.status(403).send('Only the owner of a petition may remove it');
+            return;
+        }
+
+        if (! await checkNumSupporters(tierId)) {
+            res.status(403).send('Cannot remove as there are supporters for this tier');
+            return;
+        }
+
+        if (tiers.length <= 1) {
+            res.status(403).send('Cannot remove it as this is the only tier');
+            return;
+        }
+
+        const result = await supportTiers.deleteTier(tierId);
+
+        res.status(200).send();
         return;
+
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";
@@ -167,5 +211,6 @@ const checkNumSupporters = async (id: string): Promise<boolean> => {
 
     return false;
 }
+
 
 export {addSupportTier, editSupportTier, deleteSupportTier};

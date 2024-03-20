@@ -136,6 +136,11 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        const webToken = req.headers['x-authorization'];
+        if (webToken === undefined) {
+            res.status(401).send('Unauthorized');
+            return;
+        }
         if (! await validateSession(petition[0].owner_id.toString(), req)) {
             res.status(403).send('Only the owner of a petition may change it');
             return;
@@ -190,6 +195,11 @@ const deletePetition = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        const webToken = req.headers['x-authorization'];
+        if (webToken === undefined) {
+            res.status(401).send('Unauthorized');
+            return;
+        }
         if (! await validateSession(petition[0].owner_id.toString(), req)) {
             res.status(403).send('Only the owner of a petition may delete it');
             return;

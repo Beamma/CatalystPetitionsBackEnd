@@ -48,5 +48,14 @@ const update = async (req: Request, id: string): Promise<ResultSetHeader> => {
     return result;
 }
 
+const deleteTier = async (id: string): Promise<ResultSetHeader> => {
+    Logger.info(`Deleting supporter tier ${id} from the database`);
+    const conn = await getPool().getConnection();
+    const query = 'DELETE FROM support_tier WHERE id = (?)';
+    const [result] = await conn.query(query,[id]);
+    await conn.release();
+    return result;
+}
 
-export {insert, getByPetitionId, insertTier, getById, update}
+
+export {insert, getByPetitionId, insertTier, getById, update, deleteTier}

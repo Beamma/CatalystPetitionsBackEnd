@@ -51,6 +51,11 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        const webToken = req.headers['x-authorization'];
+        if (webToken === undefined) {
+            res.status(401).send('Unauthorized');
+            return;
+        }
         const validSession = await validateSession(id, req);
         if (!validSession) {
             res.status(403).send();
@@ -111,6 +116,11 @@ const deleteImage = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        const webToken = req.headers['x-authorization'];
+        if (webToken === undefined) {
+            res.status(401).send('Unauthorized');
+            return;
+        }
         const validSession = await validateSession(id, req);
         if (!validSession) {
             res.status(403).send();

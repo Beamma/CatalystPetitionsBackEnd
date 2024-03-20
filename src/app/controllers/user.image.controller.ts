@@ -69,7 +69,7 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
 
         const imageName = "user_" + id + "." + fileType;
 
-        if (!validateImage(fileType)) {
+        if (! await validateImage(fileType)) {
             res.status(400).send();
             return;
         }
@@ -156,4 +156,4 @@ const validateImage = async (fileType: string): Promise<boolean> => {
     return (fileType === "png" || fileType === "jpeg" || fileType === "gif");
 }
 
-export {getImage, setImage, deleteImage}
+export {getImage, setImage, deleteImage, validateImage}

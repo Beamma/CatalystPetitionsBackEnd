@@ -184,5 +184,16 @@ const getImage = async (imagePath: string): Promise<Buffer> => {
     return image;
 }
 
+const uploadImage  = async (imageDir: string, image: Buffer, imageName: string, id: string) => {
+    Logger.info(`Uploading photo for petition ${id}`);
+    writeFile(imageDir, image);
 
-export {getAllPetitions, getById, getByTitle, insert, update, getExtendedById, deletePetition, getImage}
+    const conn = await getPool().getConnection();
+    const query = 'UPDATE petition SET image_filename = (?) WHERE id = (?)';
+    const [result] = await conn.query(query,[imageName, id]);
+    await conn.release();
+    return result;
+
+}
+
+export {getAllPetitions, getById, getByTitle, insert, update, getExtendedById, deletePetition, getImage, uploadImage}

@@ -181,7 +181,6 @@ const update = async (req: Request, res: Response): Promise<void> => {
             }
         }
 
-        // Get user info for header token
         const id = req.params.id;
 
         const user = await users.getId(id);
@@ -199,12 +198,28 @@ const update = async (req: Request, res: Response): Promise<void> => {
             res.status(403).send(`You cannot edit another users information`);
             return;
         }
+        
+        if (req.body.password === undefined && req.body.currentPassword !== undefined) {
+            res.status(403).send(`Please supply current password`);
+            return;
+        }
+
+        if (req.body.password !== undefined && req.body.currentPassword === undefined) {
+            res.status(403).send(`Please supply new password`);
+            return;
+        }
 
         // check current password == dbPassword
         const currentPassword = req.body.currentPassword
         const hash = user[0].password
         if (! await passwords.compare(currentPassword, hash)) {
-            res.status(401).send(`User does not exist`);
+            res.status(401).send(`Incorrect pasword`);
+            return;
+        }
+
+        const emailCheck = await users.getByEmail(req.body.email);
+        if (emailCheck.length !== 0) {
+            res.status(403).send(`email already in use`);
             return;
         }
 

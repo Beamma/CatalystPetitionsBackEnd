@@ -310,5 +310,26 @@
       }
     },
     "additionalProperties": false
+  },
+  "supporters_post": {
+    "type": "object",
+    "properties":{
+      "supportTierId": {
+        "type": "number",
+        "format": "integer",
+        "minimum": 0,
+        "nullable": false
+      },
+      "message": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1024,
+        "nullable": false
+      }
+    },
+    "required": [
+      "supportTierId"
+    ],
+    "additionalProperties": false
   }
 }

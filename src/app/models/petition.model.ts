@@ -2,6 +2,7 @@ import {Request, Response} from "express";
 import Logger from '../../config/logger';
 import { ResultSetHeader } from 'mysql2';
 import { getPool } from '../../config/db';
+import { readFile, writeFile, unlink } from 'mz/fs';
 
 const getAllPetitions = async (req: Request) => {
     const sortBy = req.query.sortBy;
@@ -178,6 +179,10 @@ const deletePetition = async (id: string): Promise<ResultSetHeader> => {
     return result;
 }
 
+const getImage = async (imagePath: string): Promise<Buffer> => {
+    const image = readFile(imagePath);
+    return image;
+}
 
 
-export {getAllPetitions, getById, getByTitle, insert, update, getExtendedById, deletePetition}
+export {getAllPetitions, getById, getByTitle, insert, update, getExtendedById, deletePetition, getImage}

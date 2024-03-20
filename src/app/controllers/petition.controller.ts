@@ -6,6 +6,7 @@ import * as schemas from '../resources/schemas.json';
 import {validate} from '../../config/ajv';
 import * as users from '../models/user.model';
 import * as supportTiers from '../models/supportTiers.model';
+import * as supporters from '../models/supporter.model';
 import { validateSession } from "./user.controller";
 
 const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
@@ -57,8 +58,11 @@ const getPetition = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        const tiers = await  supportTiers.getByPetitionId(id);
 
-        res.status(200).send(petition);
+        petition[0].supportTiers = tiers;
+
+        res.status(200).send(petition[0]);
         return;
     } catch (err) {
         Logger.error(err);
@@ -179,9 +183,26 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
 
 const deletePetition = async (req: Request, res: Response): Promise<void> => {
     try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+        const id = req.params.id;
+        const petition = await petitions.getById(id);
+        if (petition.length === 0) {
+            res.status(404).send(`petition does not exist`);
+            return;
+        }
+
+        if (! await validateSession(petition[0].owner_id.toString(), req)) {
+            res.status(403).send('Only the owner of a petition may delete it');
+            return;
+        }
+
+        if (! await checkNumSupporters(id)) {
+            res.status(403).send('Cannot delete as there are supports for this petition');
+            return;
+        }
+
+        const result = await petitions.deletePetition(id);
+
+        res.status(200).send();
         return;
     } catch (err) {
         Logger.error(err);
@@ -320,5 +341,17 @@ const validateTierTitle = async (req: Request): Promise<boolean> => {
 
     return true;
 }
+
+const checkNumSupporters = async (id: string): Promise<boolean> => {
+
+    const supporter = await supporters.getByPetitionId(id);
+    Logger.info(supporter);
+    if (supporter.length === 0) {
+        return true;
+    }
+
+    return false;
+}
+
 
 export {getAllPetitions, getPetition, addPetition, editPetition, deletePetition, getCategories};

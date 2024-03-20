@@ -121,7 +121,7 @@ const getExtendedById = async (id: string): Promise<Petition[]> => {
     Logger.info(`Getting petition ${id} from the database`);
     const conn = await getPool().getConnection();
     const query = `
-    SELECT petition.id as petitionId, petition.title, petition.category_id as categoryId, owner_id as ownerId, first_name as ownerFirstName, last_name as ownerLastName , SUM(nSupp) as numSupporters, creation_date as creationDate, MIN(cost) as supportingCost, SUM(total) as moneyRaised
+    SELECT petition.id as petitionId, petition.title, petition.description, petition.category_id as categoryId, owner_id as ownerId, first_name as ownerFirstName, last_name as ownerLastName , SUM(nSupp) as numSupporters, creation_date as creationDate, MIN(cost) as supportingCost, SUM(total) as moneyRaised
                    FROM petition
                    LEFT JOIN (
                        SELECT support_tier.petition_id, cost, COUNT(supporter.id) as nSupp, cost * COUNT(supporter.id) as total
@@ -169,5 +169,15 @@ const update = async (req: Request, id: string): Promise<ResultSetHeader> => {
 }
 
 
+const deletePetition = async (id: string): Promise<ResultSetHeader> => {
+    Logger.info(`Deleting petition ${id} from the database`);
+    const conn = await getPool().getConnection();
+    const query = 'DELETE FROM petition WHERE id = (?)';
+    const [result] = await conn.query(query,[id]);
+    await conn.release();
+    return result;
+}
 
-export {getAllPetitions, getById, getByTitle, insert, update, getExtendedById}
+
+
+export {getAllPetitions, getById, getByTitle, insert, update, getExtendedById, deletePetition}

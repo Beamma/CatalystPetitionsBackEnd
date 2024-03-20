@@ -1,4 +1,4 @@
-type Petition = {
+type Tier = {
     /**
     * User id as defined by the database
     */
@@ -6,14 +6,9 @@ type Petition = {
     /**
     *Users username as entered when created
     */
-
+    petition_id: number,
     title: string,
     description: string,
-    creation_date: Date,
-    image_filename: string,
-    owner_id: number,
-    category_id: number,
-    supportTiers: Array<Tier>
-
+    cost: number
 
 }

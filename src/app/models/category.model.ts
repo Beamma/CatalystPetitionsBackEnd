@@ -12,4 +12,13 @@ const getAll = async () => {
     return result;
 }
 
-export {getAll}
+const getById = async (id: string) => {
+    Logger.info(`Getting category ${id} from the database`);
+    const conn = await getPool().getConnection();
+    const query = 'SELECT * FROM category WHERE id = (?)';
+    const [result] = await conn.query(query, [id]);
+    await conn.release();
+    return result;
+}
+
+export {getAll, getById}

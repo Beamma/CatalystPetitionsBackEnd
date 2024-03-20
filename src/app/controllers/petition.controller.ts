@@ -2,6 +2,10 @@ import {Request, Response} from "express";
 import Logger from '../../config/logger';
 import * as petitions from '../models/petition.model';
 import * as categories from '../models/category.model';
+import * as schemas from '../resources/schemas.json';
+import {validate} from '../../config/ajv';
+import * as users from '../models/user.model';
+import * as supportTiers from '../models/supportTiers.model';
 
 const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
     try{
@@ -65,10 +69,51 @@ const getPetition = async (req: Request, res: Response): Promise<void> => {
 
 const addPetition = async (req: Request, res: Response): Promise<void> => {
     try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+        const webToken = req.headers['x-authorization'];
+        if (webToken === undefined) {
+            res.status(401).send('You are not logged in');
+            return;
+        }
+
+        const user = await users.getByToken(webToken.toString());
+
+        if (user.length === 0) {
+            res.status(401).send('You are not logged in');
+            return;
+        }
+        const validation = await validate(
+            schemas.petition_post, req.body
+        );
+        if (validation !== true) {
+            res.statusMessage = `Bad Request: ${validation.toString()}`; // ChecK?
+            res.status(400).send('Failed');
+            return;
+        }
+
+        if (! await validateCategory(req)) {
+            res.status(400).send('Invalid Category');
+            return;
+        }
+
+        if (! await validateTitle(req)) {
+            res.status(403).send('Title is not unique');
+            return;
+        }
+
+        if (! await validateTierTitle(req)) {
+            res.status(400).send('Tier Title is not unique');
+            return;
+        }
+
+        const result = await petitions.insert(req, user[0].id);
+
+        for (const row of req.body.supportTiers) {
+            const tierResult = await supportTiers.insert(row, result.insertId.toString());
+        }
+
+        res.status(201).send({"petitionId": result.insertId});
         return;
+
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";
@@ -198,6 +243,39 @@ const validateGetAllPetitions = async (req: Request, res: Response): Promise<boo
     }
 
 
+
+    return true;
+}
+
+const validateCategory = async (req: Request): Promise<boolean> => {
+    const category = await categories.getById(req.body.categoryId);
+    if (category.length === 0) {
+        return false;
+    }
+
+    return true;
+}
+
+const validateTitle = async (req: Request): Promise<boolean> => {
+    const petition = await petitions.getByTitle(req.body.title);
+    if (petition.length === 0) {
+        return true;
+    }
+
+    return false;
+}
+
+const validateTierTitle = async (req: Request): Promise<boolean> => {
+    const tiers = req.body.supportTiers;
+    const tiersIds = []
+    for (const row of tiers) {
+        tiersIds.push(row.title);
+    }
+
+    const setTiersIds = new Set(tiersIds);
+    if (setTiersIds.size !== tiersIds.length) {
+        return false;
+    }
 
     return true;
 }

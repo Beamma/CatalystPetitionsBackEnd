@@ -117,4 +117,26 @@ const getById = async (id: string): Promise<User[]> => {
     return result;
 }
 
-export {getAllPetitions, getById}
+const getByTitle = async (title: string): Promise<User[]> => {
+    Logger.info(`Getting petition ${title} from the database`);
+    const conn = await getPool().getConnection();
+    const query = 'SELECT * FROM petition WHERE title = (?)';
+    const [result] = await conn.query(query,[title]);
+    await conn.release();
+    return result;
+}
+
+const insert = async (req: Request, OwnerId: string): Promise<ResultSetHeader> => {
+    Logger.info(`Adding petition to the database`);
+    Logger.info(OwnerId);
+    const now = new Date();
+    const sqlDatetime = now.toISOString().slice(0, 19).replace('T', ' ');
+    const conn = await getPool().getConnection();
+    const query = 'insert into petition (title, description, creation_date, image_filename, owner_id, category_id) values (?, ?, ?, ?, ?, ?)';
+    const [result] = await conn.query(query,[req.body.title, req.body.description, sqlDatetime, null, OwnerId, req.body.categoryId]);
+    await conn.release();
+    return result;
+}
+
+
+export {getAllPetitions, getById, getByTitle, insert}

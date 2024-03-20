@@ -6,6 +6,7 @@ import * as schemas from '../resources/schemas.json';
 import {validate} from '../../config/ajv';
 import * as users from '../models/user.model';
 import * as supportTiers from '../models/supportTiers.model';
+import { validateSession } from "./user.controller";
 
 const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
     try{
@@ -49,15 +50,15 @@ const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
 const getPetition = async (req: Request, res: Response): Promise<void> => {
     try{
         const id = req.params.id;
-        const petition = await petitions.getById(id);
+        const petition = await petitions.getExtendedById(id);
 
         if (petition.length === 0) {
             res.status(404).send(`petition does not exist`);
             return;
         }
 
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+
+        res.status(200).send(petition);
         return;
     } catch (err) {
         Logger.error(err);
@@ -124,10 +125,50 @@ const addPetition = async (req: Request, res: Response): Promise<void> => {
 
 const editPetition = async (req: Request, res: Response): Promise<void> => {
     try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+        const id = req.params.id;
+        const petition = await petitions.getById(id);
+        if (petition.length === 0) {
+            res.status(404).send(`petition does not exist`);
+            return;
+        }
+
+        if (! await validateSession(petition[0].owner_id.toString(), req)) {
+            res.status(403).send('Only the owner of a petition may change it');
+            return;
+        }
+
+        const validation = await validate(
+            schemas.petition_patch, req.body
+        );
+        if (validation !== true) {
+            res.statusMessage = `Bad Request: ${validation.toString()}`; // ChecK?
+            res.status(400).send('Failed');
+            return;
+        }
+
+
+        if (! await validateTitle(req)) {
+            res.status(403).send('Title is not unique');
+            return;
+        }
+
+        if (req.body.title === undefined) {
+            req.body.title = petition[0].title;
+        }
+
+        if (req.body.description === undefined) {
+            req.body.description = petition[0].description;
+        }
+
+        if (req.body.categoryId === undefined) {
+            req.body.categoryId = petition[0].category_id;
+        }
+
+        const result = await petitions.update(req, id);
+
+        res.status(200).send();
         return;
+
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";

@@ -59,7 +59,7 @@ const getAllPetitions = async (req: Request) => {
         }
     }
 
-    let order = "ORDER BY creationDate ASC";
+    let order = "ORDER BY creationDate ASC, petitionId ASC";
     if (sortBy !== undefined) {
         if (sortBy === "ALPHABETICAL_ASC") {
             order = "ORDER BY petition.title ASC, petitionId ASC";
@@ -108,10 +108,30 @@ const getAllPetitions = async (req: Request) => {
     return result;
 }
 
-const getById = async (id: string): Promise<User[]> => {
+const getById = async (id: string): Promise<Petition[]> => {
     Logger.info(`Getting petition ${id} from the database`);
     const conn = await getPool().getConnection();
     const query = 'SELECT * FROM petition WHERE id = (?)';
+    const [result] = await conn.query(query,[id]);
+    await conn.release();
+    return result;
+}
+
+const getExtendedById = async (id: string): Promise<Petition[]> => {
+    Logger.info(`Getting petition ${id} from the database`);
+    const conn = await getPool().getConnection();
+    const query = `
+    SELECT petition.id as petitionId, petition.title, petition.category_id as categoryId, owner_id as ownerId, first_name as ownerFirstName, last_name as ownerLastName , SUM(nSupp) as numSupporters, creation_date as creationDate, MIN(cost) as supportingCost
+                   FROM petition
+                   LEFT JOIN (
+                       SELECT support_tier.petition_id, cost, COUNT(supporter.id) as nSupp
+                       FROM support_tier LEFT JOIN supporter ON (supporter.support_tier_id = support_tier.id)
+                       GROUP BY support_tier.petition_id, support_tier_id
+                       ORDER BY support_tier.id ASC
+                   ) as petition_support on (petition.id = petition_support.petition_id)
+                   LEFT JOIN user on (petition.owner_id = user.id) where petition.id = ?
+                   GROUP BY petition_id ORDER BY creation_date ASC
+    `;
     const [result] = await conn.query(query,[id]);
     await conn.release();
     return result;
@@ -138,5 +158,16 @@ const insert = async (req: Request, OwnerId: string): Promise<ResultSetHeader> =
     return result;
 }
 
+const update = async (req: Request, id: string): Promise<ResultSetHeader> => {
+    Logger.info(`Updating petition to the database`);
+    Logger.info(req.body.title);
+    const conn = await getPool().getConnection();
+    const query = 'UPDATE petition SET title = (?), description = (?), category_id = (?) WHERE id = (?)';
+    const [result] = await conn.query(query,[req.body.title, req.body.description, req.body.categoryId, id]);
+    await conn.release();
+    return result;
+}
 
-export {getAllPetitions, getById, getByTitle, insert}
+
+
+export {getAllPetitions, getById, getByTitle, insert, update, getExtendedById}

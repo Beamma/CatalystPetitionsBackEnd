@@ -66,7 +66,7 @@ const login = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const token = Math.random().toString(36);
+        const token = Math.random().toString(36).split(".")[1];
         try{
             const result = await users.insertToken(req.body.email, token);
             res.status(200).send({"userId": emailResult[0].id, "token": token});

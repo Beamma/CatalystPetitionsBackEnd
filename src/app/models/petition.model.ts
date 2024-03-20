@@ -121,10 +121,10 @@ const getExtendedById = async (id: string): Promise<Petition[]> => {
     Logger.info(`Getting petition ${id} from the database`);
     const conn = await getPool().getConnection();
     const query = `
-    SELECT petition.id as petitionId, petition.title, petition.category_id as categoryId, owner_id as ownerId, first_name as ownerFirstName, last_name as ownerLastName , SUM(nSupp) as numSupporters, creation_date as creationDate, MIN(cost) as supportingCost
+    SELECT petition.id as petitionId, petition.title, petition.category_id as categoryId, owner_id as ownerId, first_name as ownerFirstName, last_name as ownerLastName , SUM(nSupp) as numSupporters, creation_date as creationDate, MIN(cost) as supportingCost, SUM(total) as moneyRaised
                    FROM petition
                    LEFT JOIN (
-                       SELECT support_tier.petition_id, cost, COUNT(supporter.id) as nSupp
+                       SELECT support_tier.petition_id, cost, COUNT(supporter.id) as nSupp, cost * COUNT(supporter.id) as total
                        FROM support_tier LEFT JOIN supporter ON (supporter.support_tier_id = support_tier.id)
                        GROUP BY support_tier.petition_id, support_tier_id
                        ORDER BY support_tier.id ASC

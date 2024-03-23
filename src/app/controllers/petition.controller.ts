@@ -35,7 +35,8 @@ const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
             return;
         } catch (err) {
             Logger.error(err);
-            res.status(500).send(`ERROR getting all petitions: ${ err }`);
+            res.statusMessage = "ERROR getting all petitions: ${ err }";
+            res.status(500).send();
             return;
         }
 
@@ -54,7 +55,8 @@ const getPetition = async (req: Request, res: Response): Promise<void> => {
         const petition = await petitions.getExtendedById(id);
 
         if (petition.length === 0) {
-            res.status(404).send(`petition does not exist`);
+            res.statusMessage = "petition does not exist";
+            res.status(404).send();
             return;
         }
 
@@ -76,14 +78,16 @@ const addPetition = async (req: Request, res: Response): Promise<void> => {
     try{
         const webToken = req.headers['x-authorization'];
         if (webToken === undefined) {
-            res.status(401).send('You are not logged in');
+            res.statusMessage = 'You are not logged in';
+            res.status(401).send();
             return;
         }
 
         const user = await users.getByToken(webToken.toString());
 
         if (user.length === 0) {
-            res.status(401).send('You are not logged in');
+            res.statusMessage = 'You are not logged in';
+            res.status(401).send();
             return;
         }
         const validation = await validate(
@@ -91,22 +95,25 @@ const addPetition = async (req: Request, res: Response): Promise<void> => {
         );
         if (validation !== true) {
             res.statusMessage = `Bad Request: ${validation.toString()}`; // ChecK?
-            res.status(400).send('Failed');
+            res.status(400).send();
             return;
         }
 
         if (! await validateCategory(req)) {
-            res.status(400).send('Invalid Category');
+            res.statusMessage = 'Invalid Category';
+            res.status(400).send();
             return;
         }
 
         if (! await validateTitle(req)) {
-            res.status(403).send('Title is not unique');
+            res.statusMessage = 'Title is not unique';
+            res.status(403).send();
             return;
         }
 
         if (! await validateTierTitle(req)) {
-            res.status(400).send('Tier Title is not unique');
+            res.statusMessage = 'Tier Title is not unique';
+            res.status(400).send();
             return;
         }
 
@@ -132,17 +139,20 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
         const id = req.params.id;
         const petition = await petitions.getById(id);
         if (petition.length === 0) {
-            res.status(404).send(`petition does not exist`);
+            res.statusMessage = "petition does not exist";
+            res.status(404).send();
             return;
         }
 
         const webToken = req.headers['x-authorization'];
         if (webToken === undefined) {
-            res.status(401).send('Unauthorized');
+            res.statusMessage = 'Unauthorized';
+            res.status(401).send();
             return;
         }
         if (! await validateSession(petition[0].owner_id.toString(), req)) {
-            res.status(403).send('Only the owner of a petition may change it');
+            res.statusMessage = 'Only the owner of a petition may change it';
+            res.status(403).send();
             return;
         }
 
@@ -151,13 +161,14 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
         );
         if (validation !== true) {
             res.statusMessage = `Bad Request: ${validation.toString()}`; // ChecK?
-            res.status(400).send('Failed');
+            res.status(400).send();
             return;
         }
 
 
         if (! await validateTitle(req)) {
-            res.status(403).send('Title is not unique');
+            res.statusMessage = 'Title is not unique';
+            res.status(403).send();
             return;
         }
 
@@ -191,22 +202,26 @@ const deletePetition = async (req: Request, res: Response): Promise<void> => {
         const id = req.params.id;
         const petition = await petitions.getById(id);
         if (petition.length === 0) {
-            res.status(404).send(`petition does not exist`);
+            res.statusMessage = "petition does not exist";
+            res.status(404).send();
             return;
         }
 
         const webToken = req.headers['x-authorization'];
         if (webToken === undefined) {
-            res.status(401).send('Unauthorized');
+            res.statusMessage = 'Unauthorized';
+            res.status(401).send();
             return;
         }
         if (! await validateSession(petition[0].owner_id.toString(), req)) {
-            res.status(403).send('Only the owner of a petition may delete it');
+            res.statusMessage = 'Only the owner of a petition may delete it';
+            res.status(403).send();
             return;
         }
 
         if (! await checkNumSupporters(id)) {
-            res.status(403).send('Cannot delete as there are supports for this petition');
+            res.statusMessage = 'Cannot delete as there are supports for this petition';
+            res.status(403).send();
             return;
         }
 
@@ -227,7 +242,8 @@ const getCategories = async(req: Request, res: Response): Promise<void> => {
         const category = await categories.getAll();
 
         if (category.length === 0) {
-            res.status(404).send(`category does not exist`);
+            res.statusMessage = "category does not exist";
+            res.status(404).send();
             return;
         }
 
@@ -253,7 +269,8 @@ const validateGetAllPetitions = async (req: Request, res: Response): Promise<boo
 
     if (q !== undefined) {
         if (q === "") {
-            res.status(400).send("Invalid Query");
+            res.statusMessage = "Invalid Query";
+            res.status(400).send();
             return false;
         }
     }
@@ -261,7 +278,8 @@ const validateGetAllPetitions = async (req: Request, res: Response): Promise<boo
     if (startIndex !== undefined) {
         const startIndexRegex = /^[0-9]+$/;
         if (!(startIndex.toString().match(startIndexRegex))) {
-            res.status(400).send("Invalid Start Index");
+            res.statusMessage = "Invalid Start Index";
+            res.status(400).send();
             return false;
         }
     }
@@ -269,7 +287,8 @@ const validateGetAllPetitions = async (req: Request, res: Response): Promise<boo
     if (count !== undefined) {
         const countReg = /^[0-9]+$/;
         if (!(count.toString().match(countReg))) {
-            res.status(400).send("Invalid Count");
+            res.statusMessage = "Invalid Count";
+            res.status(400).send();
             return false;
         }
     }
@@ -277,7 +296,8 @@ const validateGetAllPetitions = async (req: Request, res: Response): Promise<boo
     if (categoryIds !== undefined) {
         const catReg = /^\d+(,\d+)*$$/;
         if (!(categoryIds.toString().match(catReg))) {
-            res.status(400).send("Invalid Category Id");
+            res.statusMessage = "Invalid Category Id";
+            res.status(400).send();
             return false;
         }
     }
@@ -285,7 +305,8 @@ const validateGetAllPetitions = async (req: Request, res: Response): Promise<boo
     if (supportingCost !== undefined) {
         const costReg = /^[0-9]+$/;
         if (!(supportingCost.toString().match(costReg))) {
-            res.status(400).send("Invalid Supporting Cost");
+            res.statusMessage = "Invalid Supporting Cost";
+            res.status(400).send();
             return false;
         }
     }
@@ -293,7 +314,8 @@ const validateGetAllPetitions = async (req: Request, res: Response): Promise<boo
     if (ownerId !== undefined) {
         const ownerIdReg = /^[0-9]+$/;
         if (!(ownerId.toString().match(ownerIdReg))) {
-            res.status(400).send("Invalid Owner Id");
+            res.statusMessage = "Invalid Owner Id";
+            res.status(400).send();
             return false;
         }
     }
@@ -301,7 +323,8 @@ const validateGetAllPetitions = async (req: Request, res: Response): Promise<boo
     if (supporterId !== undefined) {
         const supporterIdReg = /^[0-9]+$/;
         if (!(supporterId.toString().match(supporterIdReg))) {
-            res.status(400).send("Invalid Supporter Id");
+            res.statusMessage = "Invalid Supporter Id";
+            res.status(400).send();
             return false;
         }
     }
@@ -309,7 +332,8 @@ const validateGetAllPetitions = async (req: Request, res: Response): Promise<boo
     if (sortBy !== undefined) {
         const vals = ["ALPHABETICAL_ASC", "ALPHABETICAL_DESC", "COST_ASC", "COST_DESC", "CREATED_ASC", "CREATED_DESC"]
         if (!vals.includes(sortBy.toString())) {
-            res.status(400).send("Invalid Order By");
+            res.statusMessage = "Invalid Order By";
+            res.status(400).send();
             return false;
         }
     }

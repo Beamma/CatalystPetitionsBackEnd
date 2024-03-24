@@ -15,23 +15,27 @@ const addSupportTier = async (req: Request, res: Response): Promise<void> => {
         const petition = await petitions.getById(id);
 
         if (petition.length === 0) {
-            res.status(404).send(`petition does not exist`);
+            res.statusMessage = `petition does not exist`;
+            res.status(404).send();
             return;
         }
 
         const tiers = await supportTiers.getByPetitionId(id);
         if (tiers.length >= 3) {
-            res.status(403).send(`Already 3 Support Tiers`);
+            res.statusMessage = `Already 3 Support Tiers`;
+            res.status(403).send();
             return;
         }
 
         const webToken = req.headers['x-authorization'];
         if (webToken === undefined) {
-            res.status(401).send('Unauthorized');
+            res.statusMessage = 'Unauthorized';
+            res.status(401).send();
             return;
         }
         if (! await validateSession(petition[0].owner_id.toString(), req)) {
-            res.status(403).send('Only the owner of a petition may change it');
+            res.statusMessage = 'Only the owner of a petition may change it';
+            res.status(403).send();
             return;
         }
 
@@ -40,12 +44,13 @@ const addSupportTier = async (req: Request, res: Response): Promise<void> => {
         );
         if (validation !== true) {
             res.statusMessage = `Bad Request: ${validation.toString()}`; // ChecK?
-            res.status(400).send('Failed');
+            res.status(400).send();
             return;
         }
 
         if (! await validateTierTitle(req, tiers)) {
-            res.status(403).send('Tier Title is not unique');
+            res.statusMessage = 'Tier Title is not unique';
+            res.status(403).send();
             return;
         }
 
@@ -68,7 +73,8 @@ const editSupportTier = async (req: Request, res: Response): Promise<void> => {
         const petition = await petitions.getById(id);
 
         if (petition.length === 0) {
-            res.status(404).send(`petition does not exist`);
+            res.statusMessage = `petition does not exist`;
+            res.status(404).send();
             return;
         }
 
@@ -76,17 +82,20 @@ const editSupportTier = async (req: Request, res: Response): Promise<void> => {
         const tiers = await supportTiers.getByPetitionId(id);
 
         if (tier.length === 0) {
-            res.status(404).send(`supportTier does not exist`);
+            res.statusMessage = `supportTier does not exist`;
+            res.status(404).send();
             return;
         }
 
         const webToken = req.headers['x-authorization'];
         if (webToken === undefined) {
-            res.status(401).send('Unauthorized');
+            res.statusMessage = 'Unauthorized';
+            res.status(401).send();
             return;
         }
         if (! await validateSession(petition[0].owner_id.toString(), req)) {
-            res.status(403).send('Only the owner of a petition may change it');
+            res.statusMessage = 'Only the owner of a petition may change it';
+            res.status(403).send();
             return;
         }
 
@@ -95,18 +104,20 @@ const editSupportTier = async (req: Request, res: Response): Promise<void> => {
         );
         if (validation !== true) {
             res.statusMessage = `Bad Request: ${validation.toString()}`; // ChecK?
-            res.status(400).send('Failed');
+            res.status(400).send();
             return;
         }
 
         if (! await checkNumSupporters(tierId)) {
-            res.status(403).send('Cannot edit as there are supporters for this tier');
+            res.statusMessage = 'Cannot edit as there are supporters for this tier';
+            res.status(403).send();
             return;
         }
 
         if (req.body.title !== undefined) {
             if (! await validateTierTitle(req, tiers)) {
-                res.status(403).send('Tier Title is not unique');
+                res.statusMessage = 'Tier Title is not unique';
+                res.status(403).send();
                 return;
             }
         }
@@ -143,7 +154,8 @@ const deleteSupportTier = async (req: Request, res: Response): Promise<void> => 
         const petition = await petitions.getById(id);
 
         if (petition.length === 0) {
-            res.status(404).send(`petition does not exist`);
+            res.statusMessage = `petition does not exist`;
+            res.status(404).send();
             return;
         }
 
@@ -151,28 +163,33 @@ const deleteSupportTier = async (req: Request, res: Response): Promise<void> => 
         const tiers = await supportTiers.getByPetitionId(id);
 
         if (tier.length === 0) {
-            res.status(404).send(`supportTier does not exist`);
+            res.statusMessage = `supportTier does not exist`;
+            res.status(404).send();
             return;
         }
 
         const webToken = req.headers['x-authorization'];
         if (webToken === undefined) {
-            res.status(401).send('Unauthorized');
+            res.statusMessage = 'Unauthorized';
+            res.status(401).send();
             return;
         }
 
         if (! await validateSession(petition[0].owner_id.toString(), req)) {
-            res.status(403).send('Only the owner of a petition may remove it');
+            res.statusMessage = 'Only the owner of a petition may remove it';
+            res.status(403).send();
             return;
         }
 
         if (! await checkNumSupporters(tierId)) {
-            res.status(403).send('Cannot remove as there are supporters for this tier');
+            res.statusMessage = 'Cannot remove as there are supporters for this tier';
+            res.status(403).send();
             return;
         }
 
         if (tiers.length <= 1) {
-            res.status(403).send('Cannot remove it as this is the only tier');
+            res.statusMessage = 'Cannot remove it as this is the only tier';
+            res.status(403).send();
             return;
         }
 

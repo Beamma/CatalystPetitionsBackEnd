@@ -15,21 +15,22 @@ const register = async (req: Request, res: Response): Promise<void> => {
     );
     if (validation !== true) {
         res.statusMessage = `Bad Request: ${validation.toString()}`; // ChecK?
-        res.status(400).send('Failed');
+        res.status(400).send();
         return;
     }
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
 
     if (!req.body.email.match(emailRegex)) {
-        res.status(400).send(`Invalid email format`);
+        res.statusMessage = `Invalid email format`;
+        res.status(400).send();
         return;
     }
 
     const emailResult = await users.getByEmail(req.body.email);
     Logger.info(`${emailResult.length}`);
     if (emailResult.length !== 0) {
-        Logger.info(`Email in use`);
-        res.status(403).send(`Email already in use`);
+        res.statusMessage = `Email already in use`;
+        res.status(403).send();
         return;
     }
 
@@ -41,7 +42,8 @@ const register = async (req: Request, res: Response): Promise<void> => {
         return;
     } catch (err) {
         Logger.error(err);
-        res.status(500).send(`ERROR creating user ${req.body.email}: ${ err }`);
+        res.statusMessage = `ERROR creating user ${req.body.email}: ${ err }`;
+        res.status(500).send();
         return;
     }
 }
@@ -54,19 +56,21 @@ const login = async (req: Request, res: Response): Promise<void> => {
         );
         if (validation !== true) {
             res.statusMessage = `Bad Request: ${validation.toString()}`; // ChecK?
-            res.status(400).send('Failed');
+            res.status(400).send();
             return;
         }
 
         const emailResult = await users.getByEmail(req.body.email);
         if (emailResult.length === 0) {
-            res.status(401).send(`Incorrect email`);
+            res.statusMessage = `Incorrect email`;
+            res.status(401).send();
             return;
         }
 
         const password = emailResult[0].password;
         if (! await passwords.compare(req.body.password, password)) {
-            res.status(401).send(`Incorrect password`);
+            res.statusMessage = `Incorrect password`;
+            res.status(401).send();
             return;
         }
 
@@ -77,7 +81,8 @@ const login = async (req: Request, res: Response): Promise<void> => {
             return;
         } catch (err) {
             Logger.error(err);
-            res.status(500).send(`ERROR logging in user ${req.body.email}: ${ err }`);
+            res.statusMessage = `ERROR logging in user ${req.body.email}: ${ err }`;
+            res.status(500).send();
             return;
         }
 
@@ -99,7 +104,8 @@ const logout = async (req: Request, res: Response): Promise<void> => {
         Logger.http(user.length);
 
         if (user.length === 0) {
-            res.status(401).send(`Unauthorized. Cannot log out if you are not authenticated`);
+            res.statusMessage = `Unauthorized. Cannot log out if you are not authenticated`;
+            res.status(401).send();
             return;
         }
 
@@ -137,7 +143,8 @@ const view = async (req: Request, res: Response): Promise<void> => {
         Logger.info(`user[0]: ${user[0]}`);
 
         if (user.length === 0) {
-            res.status(404).send(`User does not exist`);
+            res.statusMessage = `User does not exist`;
+            res.status(404).send();
             return;
         }
 
@@ -169,14 +176,15 @@ const update = async (req: Request, res: Response): Promise<void> => {
         );
         if (validation !== true) {
             res.statusMessage = `Bad Request: ${validation.toString()}`; // ChecK?
-            res.status(400).send('Failed');
+            res.status(400).send();
             return;
         }
         if (req.body.email) {
             const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
 
             if (!req.body.email.match(emailRegex)) {
-                res.status(400).send(`Invalid email format`);
+                res.statusMessage = `Invalid email format`;
+                res.status(400).send();
                 return;
             }
         }
@@ -185,27 +193,32 @@ const update = async (req: Request, res: Response): Promise<void> => {
 
         const user = await users.getId(id);
         if (user.length === 0) {
-            res.status(404).send(`User does not exist`);
+            res.statusMessage = `User does not exist`;
+            res.status(404).send();
             return;
         }
 
         const webToken = req.headers['x-authorization'];
         if (webToken === undefined) {
-            res.status(401).send('Unauthorized');
+            res.statusMessage = 'Unauthorized';
+            res.status(401).send();
             return;
         }
         if (! await validateSession(id, req)) {
-            res.status(403).send(`You cannot edit another users information`);
+            res.statusMessage = `You cannot edit another users information`;
+            res.status(403).send();
             return;
         }
 
         if (req.body.password === undefined && req.body.currentPassword !== undefined) {
-            res.status(403).send(`Please supply current password`);
+            res.statusMessage = `Please supply current password`;
+            res.status(403).send();
             return;
         }
 
         if (req.body.password !== undefined && req.body.currentPassword === undefined) {
-            res.status(403).send(`Please supply new password`);
+            res.statusMessage = `Please supply new password`;
+            res.status(403).send();
             return;
         }
 
@@ -213,19 +226,22 @@ const update = async (req: Request, res: Response): Promise<void> => {
         const currentPassword = req.body.currentPassword
         const hash = user[0].password
         if (! await passwords.compare(currentPassword, hash)) {
-            res.status(401).send(`Incorrect pasword`);
+            res.statusMessage = `Incorrect pasword`;
+            res.status(401).send();
             return;
         }
 
         const emailCheck = await users.getByEmail(req.body.email);
         if (emailCheck.length !== 0) {
-            res.status(403).send(`email already in use`);
+            res.statusMessage = `email already in use`;
+            res.status(403).send();
             return;
         }
 
         // currentpassword != password
         if ( req.body.password === req.body.currentPassword) {
-            res.status(403).send(`Password cannot be the same as currentPassword`);
+            res.statusMessage = `Password cannot be the same as currentPassword`;
+            res.status(403).send();
             return;
         }
 

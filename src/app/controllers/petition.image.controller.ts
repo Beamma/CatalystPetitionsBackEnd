@@ -10,12 +10,14 @@ const getImage = async (req: Request, res: Response): Promise<void> => {
         const id = req.params.id;
         const petition = await petitions.getById(id);
         if (petition.length === 0) {
-            res.status(404).send(`petition does not exist`);
+            res.statusMessage = `petition does not exist`;
+            res.status(404).send();
             return;
         }
 
         if (petition[0].image_filename === null) {
-            res.status(404).send(`Petition does not have an image`);
+            res.statusMessage = `Petition does not have an image`;
+            res.status(404).send();
             return;
         }
 
@@ -42,7 +44,8 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
         const id = req.params.id;
         const petition = await petitions.getById(id);
         if (petition.length === 0) {
-            res.status(404).send(`petition does not exist`);
+            res.statusMessage = `petition does not exist`;
+            res.status(404).send();
             return;
         }
 
@@ -53,12 +56,14 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
 
         const webToken = req.headers['x-authorization'];
         if (webToken === undefined) {
-            res.status(401).send('Unauthorized');
+            res.statusMessage = 'Unauthorized';
+            res.status(401).send();
             return;
         }
 
         if (! await validateSession(petition[0].owner_id.toString(), req)) {
-            res.status(403).send('Only the owner of a petition may remove it');
+            res.statusMessage = 'Only the owner of a petition may remove it';
+            res.status(403).send();
             return;
         }
 
@@ -71,6 +76,7 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
         const imageName = "petition_" + id + "." + fileType;
 
         if (! await validateImage(fileType)) {
+            res.statusMessage = 'Invalid image type';
             res.status(400).send();
             return;
         }

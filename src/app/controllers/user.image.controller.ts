@@ -13,12 +13,14 @@ const getImage = async (req: Request, res: Response): Promise<void> => {
         Logger.info(`user[0]: ${user[0]}`);
 
         if (user.length === 0) {
-            res.status(404).send(`User does not exist`);
+            res.statusMessage = `User does not exist`;
+            res.status(404).send();
             return;
         }
 
         if (user[0].image_filename === null) {
-            res.status(404).send(`User does not have an image`);
+            res.statusMessage = `User does not have an image`;
+            res.status(404).send();
             return;
         }
 
@@ -47,17 +49,20 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
         Logger.info(`user[0]: ${user[0]}`);
 
         if (user.length === 0) {
-            res.status(404).send(`User does not exist`);
+            res.statusMessage = `User does not exist`;
+            res.status(404).send();
             return;
         }
 
         const webToken = req.headers['x-authorization'];
         if (webToken === undefined) {
-            res.status(401).send('Unauthorized');
+            res.statusMessage = 'Unauthorized';
+            res.status(401).send();
             return;
         }
         const validSession = await validateSession(id, req);
         if (!validSession) {
+            res.statusMessage = 'You cant set another users image';
             res.status(403).send();
             return;
         }
@@ -71,6 +76,7 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
         const imageName = "user_" + id + "." + fileType;
 
         if (! await validateImage(fileType)) {
+            res.statusMessage = `Invalid image`;
             res.status(400).send();
             return;
         }
@@ -88,7 +94,8 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
             return;
         } catch (err) {
             Logger.error(err);
-            res.status(500).send(`ERROR logging in user ${req.body.email}: ${ err }`);
+            res.statusMessage = `ERROR logging in user ${req.body.email}: ${ err }`;
+            res.status(500).send();
             return;
         }
     } catch (err) {
@@ -107,17 +114,20 @@ const deleteImage = async (req: Request, res: Response): Promise<void> => {
         const user = await users.getId(id);
 
         if (user.length === 0) {
-            res.status(404).send(`User does not exist`);
+            res.statusMessage = `User does not exist`;
+            res.status(404).send();
             return;
         }
 
         const webToken = req.headers['x-authorization'];
         if (webToken === undefined) {
-            res.status(401).send('Unauthorized');
+            res.statusMessage = 'Unauthorized';
+            res.status(401).send();
             return;
         }
         const validSession = await validateSession(id, req);
         if (!validSession) {
+            res.statusMessage = `You cant delete another users image`;
             res.status(403).send();
             return;
         }
@@ -126,7 +136,8 @@ const deleteImage = async (req: Request, res: Response): Promise<void> => {
         const fileDir = "./storage/images/" + imageName;
 
         if (imageName === null) {
-            res.status(400).send('User does not have an image');
+            res.statusMessage = 'User does not have an image';
+            res.status(400).send();
             return;
         }
 
@@ -136,7 +147,8 @@ const deleteImage = async (req: Request, res: Response): Promise<void> => {
             return;
         } catch (err) {
             Logger.error(err);
-            res.status(500).send(`ERROR deleting photo in user ${id}: ${ err }`);
+            res.statusMessage = `ERROR deleting photo in user ${id}: ${ err }`;
+            res.status(500).send();
             return;
         }
     } catch (err) {

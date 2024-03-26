@@ -19,6 +19,40 @@ const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
         Logger.info('After');
 
         try{
+            const validation = await validate(
+                schemas.petition_search, req.query
+            );
+            if (validation !== true) {
+                res.statusMessage = `Bad Request: ${validation.toString()}`; // ChecK?
+                res.status(400).send();
+                return;
+            }
+
+            if (req.query.categoryIds !== undefined) {
+                let catIds = [] as string[]
+
+                if(typeof req.query.categoryIds === 'string') {
+                    catIds = [req.query.categoryIds];
+                } else {
+                    catIds = req.query.categoryIds as string[];
+                }
+                const ids = (await categories.getAllIds()).map(e => e.id);
+                Logger.info(ids.toString());
+                Logger.info(catIds)
+                for (const row of catIds) {
+                    if (! (row in ids)) {
+                        Logger.info("Failed")
+                        res.statusMessage = `Invalid Cat Ids`; // ChecK?
+                        res.status(400).send();
+                        return;
+                    } else {
+                        Logger.info(row);
+                    }
+                }
+
+            }
+
+
             let result = await petitions.getAllPetitions(req);
             const startIndex = req.query.startIndex;
             const count = req.query.count;
@@ -29,6 +63,10 @@ const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
 
             if (count !== undefined) {
                 result = result.slice(0, Number(count));
+            }
+
+            for (const item of result) {
+                item.numberOfSupporters = parseInt(item.numberOfSupporters, 10)
             }
 
             res.status(200).send({"petitions": result, "count": resultLength});
@@ -63,6 +101,8 @@ const getPetition = async (req: Request, res: Response): Promise<void> => {
         const tiers = await  supportTiers.getByPetitionId(id);
 
         petition[0].supportTiers = tiers;
+        petition[0].numberOfSupporters = parseInt(petition[0].numberOfSupporters, 10)
+        petition[0].moneyRaised = parseInt(petition[0].moneyRaised, 10)
 
         res.status(200).send(petition[0]);
         return;

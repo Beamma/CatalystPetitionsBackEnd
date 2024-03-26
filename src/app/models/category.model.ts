@@ -21,4 +21,13 @@ const getById = async (id: string) => {
     return result;
 }
 
-export {getAll, getById}
+const getAllIds = async (): Promise<Category[]> => {
+    Logger.info(`Getting category from the database`);
+    const conn = await getPool().getConnection();
+    const query = 'SELECT id FROM category';
+    const [result] = await conn.query(query);
+    await conn.release();
+    return result;
+}
+
+export {getAll, getById, getAllIds}

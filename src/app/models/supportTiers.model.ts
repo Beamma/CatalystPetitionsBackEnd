@@ -24,7 +24,7 @@ const insertTier = async (req: Request, id: string): Promise<ResultSetHeader> =>
 const getByPetitionId = async (id: string): Promise<Tier[]> => {
     Logger.info(`Getting Supporter Tier by Petition Id ${id} from the database`);
     const conn = await getPool().getConnection();
-    const query = 'SELECT title, description, cost, id as supportTierId FROM support_tier WHERE petition_id = (?) ORDER BY supportTierId ASC';
+    const query = 'SELECT title, description, cost, id as supportTierId FROM support_tier WHERE petition_id = (?) ORDER BY supportTierId DESC';
     const [result] = await conn.query(query,[id]);
     await conn.release();
     return result;

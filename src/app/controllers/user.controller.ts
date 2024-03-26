@@ -99,9 +99,13 @@ const logout = async (req: Request, res: Response): Promise<void> => {
     try{
         Logger.http(`POST Logout user`)
         const webToken = req.headers['x-authorization'];
-        Logger.http(webToken);
+        if (webToken === undefined) {
+            res.statusMessage = 'You are not logged in';
+            res.status(401).send();
+            return;
+        }
+
         const user = await users.getByToken(webToken.toString());
-        Logger.http(user.length);
 
         if (user.length === 0) {
             res.statusMessage = `Unauthorized. Cannot log out if you are not authenticated`;
@@ -225,21 +229,23 @@ const update = async (req: Request, res: Response): Promise<void> => {
         // check current password == dbPassword
         const currentPassword = req.body.currentPassword
         const hash = user[0].password
-        if (! await passwords.compare(currentPassword, hash)) {
-            res.statusMessage = `Incorrect pasword`;
-            res.status(401).send();
-            return;
+        if(req.body.currentPassword !== undefined) {
+            if (! await passwords.compare(currentPassword, hash)) {
+                res.statusMessage = `Incorrect pasword`;
+                res.status(401).send();
+                return;
+            }
         }
 
         const emailCheck = await users.getByEmail(req.body.email);
-        if (emailCheck.length !== 0) {
+        if (emailCheck.length !== 0 && req.body.email !== undefined && emailCheck[0].id !== parseInt(id, 10)) {
             res.statusMessage = `email already in use`;
             res.status(403).send();
             return;
         }
 
         // currentpassword != password
-        if ( req.body.password === req.body.currentPassword) {
+        if ( req.body.password === req.body.currentPassword && req.body.currentPassword !== undefined) {
             res.statusMessage = `Password cannot be the same as currentPassword`;
             res.status(403).send();
             return;
@@ -262,7 +268,7 @@ const update = async (req: Request, res: Response): Promise<void> => {
 
         let lastName = "";
         if (req.body.lastName) {
-            lastName = req.body.lastNameName;
+            lastName = req.body.lastName;
         } else {
             lastName = user[0].last_name;
         }

@@ -1,5 +1,7 @@
 # Catalyst Petitions API Server
 
+The server is created using expressJS meaning node.js will be required. 
+
 ## Running locally
 
 1. Use `npm install` to populate the `node_modules/` directory with up-to-date packages
